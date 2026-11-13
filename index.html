@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Biglietti - Festa Terza Media 2026</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRCode.js library for QR Code Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- html2pdf.js library for exporting PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            500: '#4f46e5',
+                            600: '#4338ca',
+                            700: '#3730a3',
+                            900: '#1e1b4b',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printableTicket, #printableTicket * {
+                visibility: visible;
+            }
+            #printableTicket {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 pb-12">
+
+    <!-- Header / Navbar -->
+    <header class="no-print sticky top-0 z-40 glass-dark border-b border-slate-700/50 mb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-amber-400 to-indigo-600 p-2.5 rounded-2xl shadow-lg text-white text-xl font-bold">
+                    🎓
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                        Festa Terze Media <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 border border-indigo-400/30">2026</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">5 Giugno 2026 • Ore 20:00 | Portale Organizzatori</p>
+                </div>
+            </div>
+            
+            <!-- Quick Info Badge & Action -->
+            <div class="flex items-center gap-3">
+                <button onclick="resetDataConfirmation()" class="text-xs text-slate-400 hover:text-red-400 transition flex items-center gap-1 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <i class="fa-solid fa-rotate-right"></i> Reset Dati
+                </button>
+                <button onclick="switchTab('sale')" class="hidden sm:flex bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Nuovo Biglietto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        <!-- Navigation Tabs -->
+        <div class="no-print flex flex-wrap gap-2 p-1.5 glass-dark rounded-2xl border border-slate-700/50">
+            <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-white bg-indigo-600/80 shadow">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard & Budget
+            </button>
+            <button id="tab-btn-sale" onclick="switchTab('sale')" class="flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                <i class="fa-solid fa-ticket"></i> Emetti Biglietto
+            </button>
+            <button id="tab-btn-checkin" onclick="switchTab('checkin')" class="flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                <i class="fa-solid fa-qrcode"></i> Check-in Ingressi
+            </button>
+            <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                <i class="fa-solid fa-users"></i> Elenco Partecipanti
+            </button>
+            <button id="tab-btn-supervisors" onclick="switchTab('supervisors')" class="flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
+                <i class="fa-solid fa-user-shield"></i> Genitori Volontari
+            </button>
+        </div>
+
+        <!-- Notification Banner -->
+        <div id="toastNotification" class="hidden fixed bottom-5 right-5 z-50 glass-card bg-slate-900/90 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-indigo-500/40 flex items-center gap-3 transform transition-all duration-300 translate-y-10">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+            <div>
+                <h4 id="toastTitle" class="font-bold text-sm">Operazione completata</h4>
+                <p id="toastMessage" class="text-xs text-slate-300">Il biglietto è stato registrato con successo.</p>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD & STATS -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- Summary KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Card Biglietti Venduti -->
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-indigo-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Biglietti Emessi</p>
+                            <h3 id="statTotalTickets" class="text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                            <i class="fa-solid fa-ticket text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center text-xs text-slate-500">
+                        <span id="statPaidRatio" class="font-semibold text-emerald-600 mr-1">0 pagati</span> sul totale
+                    </div>
+                </div>
+
+                <!-- Card Incasso Totale -->
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-emerald-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Incasso Effettivo</p>
+                            <h3 id="statTotalIncome" class="text-3xl font-extrabold text-emerald-600 mt-1">€0</h3>
+                        </div>
+                        <div class="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-wallet text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center text-xs text-slate-500">
+                        Potenziale stimato: <span id="statPotentialIncome" class="font-semibold text-slate-700 ml-1">€0</span>
+                    </div>
+                </div>
+
+                <!-- Card Ingressi Effettuati -->
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Ingressi Check-in</p>
+                            <h3 id="statCheckedIn" class="text-3xl font-extrabold text-purple-600 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-purple-100 text-purple-600 rounded-xl">
+                            <i class="fa-solid fa-user-check text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">
+                        <span id="statCheckinPercent" class="font-semibold text-purple-600">0%</span> dei ragazzi presente
+                    </div>
+                </div>
+
+                <!-- Card Genitori Volontari Totali -->
+                <div class="glass-card rounded-2xl p-5 border-l-4 border-amber-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Genitori Supervisori</p>
+                            <h3 id="statTotalSupervisors" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-amber-100 text-amber-600 rounded-xl">
+                            <i class="fa-solid fa-shield-halved text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">
+                        Obiettivo: <span class="font-semibold text-slate-700">min. 5 per classe</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Quorum per Class section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Status Genitori per Classe -->
+                <div class="lg:col-span-2 glass-card rounded-2xl p-6 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">Quorum Genitori Supervisori per Classe</h3>
+                            <p class="text-xs text-slate-500">Servono almeno 5 genitori per ogni sezione per garantire la sicurezza.</p>
+                        </div>
+                        <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-full border border-amber-200">
+                            <i class="fa-solid fa-circle-info mr-1"></i> Min. 5/classe
+                        </span>
+                    </div>
+
+                    <div id="classesQuorumGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Panoramica Evento & Info -->
+                <div class="glass-card rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Dettagli Evento</h3>
+                        <p class="text-xs text-slate-500 mb-4">Riepilogo delle informazioni chiave della festa.</p>
+
+                        <div class="space-y-3.5 text-sm">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <div class="text-indigo-600 text-lg"><i class="fa-regular fa-calendar-days"></i></div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-medium">Data e Ora</p>
+                                    <p class="font-semibold text-slate-800">5 Giugno 2026 - Ore 20:00</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <div class="text-amber-500 text-lg"><i class="fa-solid fa-euro-sign"></i></div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-medium">Quota d'ingresso</p>
+                                    <p class="font-semibold text-slate-800">20,00 € a ragazzo</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <div class="text-emerald-600 text-lg"><i class="fa-solid fa-graduation-cap"></i></div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-medium">Classi Partecipanti</p>
+                                    <p class="font-semibold text-slate-800">3A, 3B, 3C, 3D, 3E</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-200/80">
+                        <button onclick="switchTab('sale')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Registra Nuova Adesione
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: EMISSIONE BIGLIETTO -->
+        <section id="tab-sale" class="tab-content hidden">
+            <div class="max-w-3xl mx-auto glass-card rounded-2xl p-6 sm:p-8 shadow-2xl">
+                <div class="mb-6 border-b border-slate-200 pb-4">
+                    <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-ticket text-indigo-600"></i> Registratione & Vendita Biglietto
+                    </h2>
+                    <p class="text-sm text-slate-500">Compila i dati dell'alunno per emettere il pass digitale d'ingresso.</p>
+                </div>
+
+                <form id="ticketForm" onsubmit="handleTicketSubmit(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <!-- Nome Alunno -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Nome Alunno *</label>
+                            <input type="text" id="studentName" required placeholder="Es. Marco" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition">
+                        </div>
+
+                        <!-- Cognome Alunno -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Cognome Alunno *</label>
+                            <input type="text" id="studentSurname" required placeholder="Es. Rossi" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition">
+                        </div>
+
+                        <!-- Classe -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Classe *</label>
+                            <select id="studentClass" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition bg-white">
+                                <option value="">Seleziona classe...</option>
+                                <option value="3A">Sezione 3A</option>
+                                <option value="3B">Sezione 3B</option>
+                                <option value="3C">Sezione 3C</option>
+                                <option value="3D">Sezione 3D</option>
+                                <option value="3E">Sezione 3E</option>
+                            </select>
+                        </div>
+
+                        <!-- Stato Pagamento -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Stato Pagamento *</label>
+                            <select id="paymentStatus" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition bg-white">
+                                <option value="Pagato">✅ Pagato (€20)</option>
+                                <option value="Da Pagare">⏳ Da Pagare (In sospeso)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Note e Allergie -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Note / Allergie Alimentari</label>
+                        <textarea id="notes" rows="2" placeholder="Es. Celiaco, vegetariano, allergia alla frutta secca..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none transition"></textarea>
+                    </div>
+
+                    <!-- Volontario Genitore Box -->
+                    <div class="p-4 bg-indigo-50/70 border border-indigo-200 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label for="hasSupervisor" class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="hasSupervisor" onchange="toggleSupervisorFields()" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300">
+                                <div>
+                                    <span class="text-sm font-bold text-indigo-950">Un genitore è disponibile come supervisore</span>
+                                    <p class="text-xs text-indigo-700">Aggiungi questo genitore alla lista dei controllori volontari per la serata.</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Campi opzionali Genitore -->
+                        <div id="supervisorFields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-indigo-200/60">
+                            <div>
+                                <label class="block text-xs font-semibold text-indigo-900 mb-1">Nome e Cognome Genitore</label>
+                                <input type="text" id="parentName" placeholder="Es. Giuseppe Rossi" class="w-full px-3.5 py-2 rounded-xl border border-indigo-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-indigo-900 mb-1">Telefono / Cellulare</label>
+                                <input type="tel" id="parentPhone" placeholder="Es. 333 1234567" class="w-full px-3.5 py-2 rounded-xl border border-indigo-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 pt-2">
+                        <button type="button" onclick="resetForm()" class="w-1/3 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-sm transition">
+                            Annulla
+                        </button>
+                        <button type="submit" class="w-2/3 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-ticket"></i> Genera Biglietto Pass
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 3: CHECK-IN / SCANNER VALIDATOR -->
+        <section id="tab-checkin" class="tab-content hidden space-y-6">
+            <div class="max-w-2xl mx-auto glass-card rounded-2xl p-6 sm:p-8 shadow-2xl text-center">
+                <div class="w-16 h-16 bg-gradient-to-tr from-purple-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">Validazione & Check-in Ingressi</h2>
+                <p class="text-sm text-slate-500 mb-6">Inserisci il codice del biglietto o scansiona il QR Code del ragazzo all'ingresso.</p>
+
+                <!-- Search / Scan form -->
+                <div class="flex gap-2 max-w-md mx-auto mb-6">
+                    <input type="text" id="checkinCodeInput" placeholder="Inserisci Codice (es. TICKET-3A-102)" class="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm outline-none font-mono uppercase">
+                    <button onclick="processCheckin()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md">
+                        Valida
+                    </button>
+                </div>
+
+                <!-- Simulation Info Banner -->
+                <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-xl p-3 text-xs mb-6">
+                    💡 <strong>Suggerimento rapido:</strong> Puoi testare il check-in usando i codici già presenti nella lista partecipanti (es. <code>TKT-3A-101</code>).
+                </div>
+
+                <!-- Checkin Result Box -->
+                <div id="checkinResultBox" class="hidden p-6 rounded-2xl border transition-all duration-300 text-left">
+                    <!-- Dynamic Result -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: ELENCO PARTECIPANTI -->
+        <section id="tab-list" class="tab-content hidden space-y-4">
+            <div class="glass-card rounded-2xl p-6 shadow-xl">
+                <!-- Filters & Search Header -->
+                <div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
+                    <div class="w-full md:w-auto">
+                        <h2 class="text-xl font-bold text-slate-900">Elenco Partecipanti</h2>
+                        <p class="text-xs text-slate-500">Gestisci le prenotazioni, i pagamenti e gli ingressi.</p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+                        <button onclick="exportToCSV()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-file-excel"></i> Esporta CSV
+                        </button>
+                        <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-print"></i> Stampa Lista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                    <div>
+                        <input type="text" id="searchInput" oninput="renderTable()" placeholder="Cerca nome o codice..." class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    </div>
+                    <div>
+                        <select id="filterClass" onchange="renderTable()" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="ALL">Tutte le Classi</option>
+                            <option value="3A">Classe 3A</option>
+                            <option value="3B">Classe 3B</option>
+                            <option value="3C">Classe 3C</option>
+                            <option value="3D">Classe 3D</option>
+                            <option value="3E">Classe 3E</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="filterPayment" onchange="renderTable()" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="ALL">Tutti gli stati pagamento</option>
+                            <option value="Pagato">Pagato</option>
+                            <option value="Da Pagare">Da Pagare</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="filterCheckin" onchange="renderTable()" class="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="ALL">Tutti gli ingressi</option>
+                            <option value="Ingressato">Ingresso Effettuato</option>
+                            <option value="Non Ingressato">Non Ancora Entrato</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-100 text-xs font-bold uppercase text-slate-500 tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="py-3.5 px-4">Codice</th>
+                                <th class="py-3.5 px-4">Alunno</th>
+                                <th class="py-3.5 px-4">Classe</th>
+                                <th class="py-3.5 px-4">Stato Pagamento</th>
+                                <th class="py-3.5 px-4">Ingresso</th>
+                                <th class="py-3.5 px-4">Supervisore</th>
+                                <th class="py-3.5 px-4 text-center">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketsTableBody" class="divide-y divide-slate-200 bg-white">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="hidden text-center py-12">
+                    <i class="fa-regular fa-folder-open text-4xl text-slate-300 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-500">Nessun partecipante trovato con i filtri selezionati.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: GENITORI VOLONTARI SUPERVISORI -->
+        <section id="tab-supervisors" class="tab-content hidden space-y-4">
+            <div class="glass-card rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Genitori Volontari / Supervisori</h2>
+                        <p class="text-xs text-slate-500">Elenco dei genitori disponibili a presenziare durante la serata.</p>
+                    </div>
+                    <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-print"></i> Stampa Lista Supervisori
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-amber-50 text-xs font-bold uppercase text-amber-900 tracking-wider border-b border-amber-200">
+                            <tr>
+                                <th class="py-3.5 px-4">Nome Genitore</th>
+                                <th class="py-3.5 px-4">Telefono</th>
+                                <th class="py-3.5 px-4">Genitore di (Alunno)</th>
+                                <th class="py-3.5 px-4">Classe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supervisorsTableBody" class="divide-y divide-slate-200 bg-white">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL VISTA BIGLIETTO DIGITALE / PASS -->
+    <div id="ticketModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 my-8">
+            <!-- Modal Header / Actions -->
+            <div class="no-print p-4 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
+                <span class="text-xs font-bold tracking-wider uppercase text-amber-400">Pass Digitale Ufficiale</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="downloadTicketPDF()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-download"></i> Scarica PDF
+                    </button>
+                    <button onclick="window.print()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i> Stampa
+                    </button>
+                    <button onclick="closeTicketModal()" class="p-1.5 text-slate-400 hover:text-white transition rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Printable Ticket Card Container -->
+            <div id="printableTicket" class="p-6 bg-gradient-to-b from-indigo-900 via-indigo-950 to-slate-950 text-white relative overflow-hidden">
+                <!-- Decorative background elements -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl"></div>
+
+                <div class="relative z-10 border-2 border-amber-400/40 rounded-2xl p-6 bg-slate-900/60 backdrop-blur-md">
+                    <!-- Ticket Header -->
+                    <div class="flex justify-between items-start border-b border-slate-800 pb-4 mb-4">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-widest text-amber-400 font-bold">FESTA DI FINE ANNO 2026</span>
+                            <h2 class="text-2xl font-black tracking-tight text-white mt-0.5">TERZA MEDIA</h2>
+                        </div>
+                        <div class="text-right">
+                            <span id="modalTicketCode" class="font-mono font-bold text-xs bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-md">
+                                TKT-3A-101
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Student Info -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p class="text-[11px] text-slate-400 uppercase font-semibold">Alunno / Partecipante</p>
+                            <p id="modalStudentName" class="text-lg font-extrabold text-white">Marco Rossi</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] text-slate-400 uppercase font-semibold">Classe</p>
+                            <p id="modalStudentClass" class="text-lg font-extrabold text-amber-400">3A</p>
+                        </div>
+                    </div>
+
+                    <!-- Event Details Badge -->
+                    <div class="bg-indigo-950/80 border border-indigo-800/60 rounded-xl p-3 mb-6 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <p class="text-slate-400 text-[10px]">DATA E ORA</p>
+                            <p class="font-bold text-slate-200">5 Giugno 2026 - 20:00</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-[10px]">STATO PAGAMENTO</p>
+                            <p id="modalPaymentStatus" class="font-bold text-emerald-400">PAGATO (€20)</p>
+                        </div>
+                    </div>
+
+                    <!-- Note/Allergie if any -->
+                    <div id="modalNotesContainer" class="hidden mb-4 p-2.5 bg-red-950/40 border border-red-500/30 rounded-lg text-xs text-red-200">
+                        <span class="font-bold">⚠️ Note:</span> <span id="modalNotesText">Allergico</span>
+                    </div>
+
+                    <!-- QR Code Section -->
+                    <div class="flex flex-col items-center justify-center pt-2">
+                        <div class="bg-white p-3 rounded-2xl shadow-xl mb-2">
+                            <div id="qrcode" class="flex justify-center"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-mono tracking-wider">MOSTRA IL CODICE QR ALL'INGRESSO</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let tickets = [];
+        const TICKET_PRICE = 20;
+        const TARGET_SUPERVISORS_PER_CLASS = 5;
+        const CLASSES_LIST = ['3A', '3B', '3C', '3D', '3E'];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, character => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[character]);
+        }
+
+        async function apiRequest(method = 'GET', payload = null) {
+            let password = sessionStorage.getItem('organizerPassword');
+            if (!password) password = window.prompt('Inserisci il codice organizzatori');
+            if (!password) throw new Error('Accesso annullato.');
+
+            const send = (accessCode) => fetch('/api/tickets', {
+                method,
+                headers: {
+                    'X-Organizer-Password': accessCode,
+                    'Content-Type': 'application/json'
+                },
+                body: payload === null ? undefined : JSON.stringify(payload)
+            });
+
+            let response = await send(password);
+            if (response.status === 401) {
+                sessionStorage.removeItem('organizerPassword');
+                password = window.prompt('Codice non valido. Riprova');
+                if (!password) throw new Error('Accesso annullato.');
+                response = await send(password);
+            }
+
+            if (response.status === 401) throw new Error('Codice organizzatori non valido.');
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Richiesta non riuscita.');
+
+            sessionStorage.setItem('organizerPassword', password);
+            return result;
+        }
+
+        async function loadTicketsData() {
+            tickets = await apiRequest();
+            if (tickets.length || sessionStorage.getItem('legacyImportSkipped') === 'true') return;
+
+            let localTickets;
+            try {
+                localTickets = JSON.parse(localStorage.getItem('party_tickets_2026'));
+            } catch {
+                return;
+            }
+            if (!Array.isArray(localTickets) || localTickets.length === 0) return;
+
+            const shouldImport = confirm(
+                `Questo browser contiene ${localTickets.length} biglietti non ancora condivisi. ` +
+                `Vuoi importarli nel backend? Verifica prima che non siano dati dimostrativi.`
+            );
+            if (!shouldImport) {
+                sessionStorage.setItem('legacyImportSkipped', 'true');
+                return;
+            }
+
+            for (const ticket of localTickets) {
+                try {
+                    await apiRequest('POST', ticket);
+                } catch (error) {
+                    if (!error.message.includes('Codice biglietto già esistente')) throw error;
+                }
+            }
+            tickets = await apiRequest();
+        }
+
+        // Expose functions globally to prevent ReferenceErrors from onclick attributes
+        window.resetDataConfirmation = function() {
+            if(confirm("Sei sicuro di voler eliminare tutti i biglietti? L'operazione non può essere annullata.")) {
+                apiRequest('DELETE').then(() => {
+                    tickets = [];
+                    updateDashboard();
+                    renderTable();
+                    renderSupervisorsTable();
+                    showToast("Tutti i biglietti sono stati eliminati", "success");
+                }).catch(error => alert(error.message));
+            }
+        };
+
+        // Tab Switcher
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            document.querySelectorAll('[id^="tab-btn-"]').forEach(btn => {
+                btn.className = "flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800/50";
+            });
+
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if(activeBtn) {
+                activeBtn.className = "flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 text-white bg-indigo-600/80 shadow";
+            }
+
+            if(tabId === 'list') renderTable();
+            if(tabId === 'supervisors') renderSupervisorsTable();
+            if(tabId === 'dashboard') updateDashboard();
+        };
+
+        // Dashboard Stats calculation
+        function updateDashboard() {
+            const totalTickets = tickets.length;
+            const paidTickets = tickets.filter(t => t.payment === 'Pagato').length;
+            const checkedInCount = tickets.filter(t => t.checkedIn).length;
+            const totalSupervisors = tickets.filter(t => t.hasSupervisor).length;
+
+            const totalIncome = paidTickets * TICKET_PRICE;
+            const potentialIncome = totalTickets * TICKET_PRICE;
+            const checkinPercent = totalTickets > 0 ? Math.round((checkedInCount / totalTickets) * 100) : 0;
+
+            const totalTicketsEl = document.getElementById('statTotalTickets');
+            if (totalTicketsEl) totalTicketsEl.innerText = totalTickets;
+            const paidRatioEl = document.getElementById('statPaidRatio');
+            if (paidRatioEl) paidRatioEl.innerText = `${paidTickets} pagati`;
+            const totalIncomeEl = document.getElementById('statTotalIncome');
+            if (totalIncomeEl) totalIncomeEl.innerText = `€${totalIncome}`;
+            const potentialIncomeEl = document.getElementById('statPotentialIncome');
+            if (potentialIncomeEl) potentialIncomeEl.innerText = `€${potentialIncome}`;
+            const checkedInEl = document.getElementById('statCheckedIn');
+            if (checkedInEl) checkedInEl.innerText = checkedInCount;
+            const checkinPercentEl = document.getElementById('statCheckinPercent');
+            if (checkinPercentEl) checkinPercentEl.innerText = `${checkinPercent}%`;
+            const totalSupervisorsEl = document.getElementById('statTotalSupervisors');
+            if (totalSupervisorsEl) totalSupervisorsEl.innerText = totalSupervisors;
+
+            // Render Quorum Cards
+            const quorumGrid = document.getElementById('classesQuorumGrid');
+            if (quorumGrid) {
+                quorumGrid.innerHTML = '';
+                CLASSES_LIST.forEach(cls => {
+                    const classTickets = tickets.filter(t => t.class === cls);
+                    const countSupervisors = classTickets.filter(t => t.hasSupervisor).length;
+                    const isQuorumReached = countSupervisors >= TARGET_SUPERVISORS_PER_CLASS;
+                    const percent = Math.min(100, Math.round((countSupervisors / TARGET_SUPERVISORS_PER_CLASS) * 100));
+
+                    const cardHtml = `
+                        <div class="p-4 rounded-xl border ${isQuorumReached ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-50 border-slate-200'}">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-extrabold text-slate-800 text-base">Classe ${cls}</span>
+                                ${isQuorumReached 
+                                    ? `<span class="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Quorum Raggiunto</span>`
+                                    : `<span class="text-[11px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">In corso (${countSupervisors}/${TARGET_SUPERVISORS_PER_CLASS})</span>`
+                                }
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-500 mb-1">
+                                <span>Genitori supervisori: <strong>${countSupervisors}</strong> / ${TARGET_SUPERVISORS_PER_CLASS}</span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                <div class="h-2.5 rounded-full ${isQuorumReached ? 'bg-emerald-500' : 'bg-amber-500'}" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    quorumGrid.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            }
+        }
+
+        // Toggle Supervisor Form Fields
+        window.toggleSupervisorFields = function() {
+            const isChecked = document.getElementById('hasSupervisor').checked;
+            const fieldsBox = document.getElementById('supervisorFields');
+            if(isChecked) {
+                fieldsBox.classList.remove('hidden');
+            } else {
+                fieldsBox.classList.add('hidden');
+            }
+        };
+
+        // Handle Form Submission (New Ticket)
+        window.handleTicketSubmit = async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('studentName').value.trim();
+            const surname = document.getElementById('studentSurname').value.trim();
+            const studentClass = document.getElementById('studentClass').value;
+            const payment = document.getElementById('paymentStatus').value;
+            const notes = document.getElementById('notes').value.trim();
+            const hasSupervisor = document.getElementById('hasSupervisor').checked;
+            const parentName = document.getElementById('parentName').value.trim();
+            const parentPhone = document.getElementById('parentPhone').value.trim();
+
+            const ticketId = `TKT-${studentClass}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+
+            const newTicket = {
+                id: ticketId,
+                name: name,
+                surname: surname,
+                class: studentClass,
+                payment: payment,
+                checkedIn: false,
+                notes: notes,
+                hasSupervisor: hasSupervisor,
+                parentName: hasSupervisor ? (parentName || `Genitore di ${name}`) : "",
+                parentPhone: hasSupervisor ? parentPhone : "",
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            try {
+                const savedTicket = await apiRequest('POST', newTicket);
+                tickets.unshift(savedTicket);
+                updateDashboard();
+                renderTable();
+                window.resetForm();
+                showToast("Biglietto emesso con successo!", "success");
+                window.openTicketModal(ticketId);
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        };
+
+        window.resetForm = function() {
+            const form = document.getElementById('ticketForm');
+            if (form) form.reset();
+            const fieldsBox = document.getElementById('supervisorFields');
+            if (fieldsBox) fieldsBox.classList.add('hidden');
+        };
+
+        // Render Table Participants
+        window.renderTable = function() {
+            const tbody = document.getElementById('ticketsTableBody');
+            if (!tbody) return;
+
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filterClass = document.getElementById('filterClass').value;
+            const filterPayment = document.getElementById('filterPayment').value;
+            const filterCheckin = document.getElementById('filterCheckin').value;
+
+            tbody.innerHTML = '';
+
+            const filtered = tickets.filter(t => {
+                const matchesSearch = `${t.name} ${t.surname} ${t.id}`.toLowerCase().includes(search);
+                const matchesClass = filterClass === 'ALL' || t.class === filterClass;
+                const matchesPayment = filterPayment === 'ALL' || t.payment === filterPayment;
+                const matchesCheckin = filterCheckin === 'ALL' || 
+                    (filterCheckin === 'Ingressato' && t.checkedIn) || 
+                    (filterCheckin === 'Non Ingressato' && !t.checkedIn);
+
+                return matchesSearch && matchesClass && matchesPayment && matchesCheckin;
+            });
+
+            const emptyState = document.getElementById('emptyState');
+            if(filtered.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+            } else {
+                if (emptyState) emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-xs text-indigo-600">${t.id}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(t.surname)} ${escapeHtml(t.name)}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700">${t.class}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="togglePayment('${t.id}')" class="px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${t.payment === 'Pagato' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            ${t.payment === 'Pagato' ? '<i class="fa-solid fa-check"></i> Pagato (€20)' : '<i class="fa-regular fa-clock"></i> Da Pagare'}
+                        </button>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${t.checkedIn ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-500'}">
+                            ${t.checkedIn ? '🟢 Ingresso effettuato' : '⚪ Non entrato'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-xs">
+                        ${t.hasSupervisor 
+                            ? `<span class="text-amber-700 font-medium"><i class="fa-solid fa-shield"></i> ${escapeHtml(t.parentName)}</span>` 
+                            : `<span class="text-slate-400">-</span>`}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openTicketModal('${t.id}')" title="Vedi Biglietto Pass" class="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition">
+                                <i class="fa-solid fa-ticket"></i>
+                            </button>
+                            <button onclick="deleteTicket('${t.id}')" title="Elimina Biglietto" class="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        // Render Supervisors Table
+        function renderSupervisorsTable() {
+            const tbody = document.getElementById('supervisorsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const supervisorTickets = tickets.filter(t => t.hasSupervisor);
+
+            if(supervisorTickets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">Nessun genitore volontario registrato al momento.</td></tr>`;
+                return;
+            }
+
+            supervisorTickets.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(t.parentName || 'Genitore Volontario')}</td>
+                    <td class="py-3 px-4 font-mono text-slate-600">${escapeHtml(t.parentPhone || 'Non fornito')}</td>
+                    <td class="py-3 px-4 text-slate-700">${escapeHtml(t.name)} ${escapeHtml(t.surname)}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold text-xs">${t.class}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Toggle Payment Status
+        window.togglePayment = async function(ticketId) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if(ticket) {
+                const payment = ticket.payment === 'Pagato' ? 'Da Pagare' : 'Pagato';
+                try {
+                    const updatedTicket = await apiRequest('PATCH', { id: ticket.id, updates: { payment } });
+                    Object.assign(ticket, updatedTicket);
+                    updateDashboard();
+                    renderTable();
+                    showToast(`Stato pagamento aggiornato per ${ticket.name}`, "info");
+                } catch (error) {
+                    showToast(error.message, "error");
+                }
+            }
+        };
+
+        // Delete Ticket
+        window.deleteTicket = async function(ticketId) {
+            if(confirm("Sei sicuro di voler eliminare questo biglietto?")) {
+                try {
+                    await apiRequest('DELETE', { id: ticketId });
+                    tickets = tickets.filter(t => t.id !== ticketId);
+                    updateDashboard();
+                    renderTable();
+                    renderSupervisorsTable();
+                    showToast("Biglietto eliminato", "info");
+                } catch (error) {
+                    showToast(error.message, "error");
+                }
+            }
+        };
+
+        // Process Check-in Validator
+        window.processCheckin = async function() {
+            const input = document.getElementById('checkinCodeInput');
+            const code = input.value.trim().toUpperCase();
+            const resultBox = document.getElementById('checkinResultBox');
+
+            if(!code) {
+                alert("Inserisci un codice biglietto valido!");
+                return;
+            }
+
+            const ticket = tickets.find(t => t.id.toUpperCase() === code);
+
+            resultBox.classList.remove('hidden');
+
+            if(!ticket) {
+                resultBox.className = "p-6 rounded-2xl border bg-red-50 border-red-200 text-red-900";
+                resultBox.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-circle-xmark text-2xl text-red-600"></i>
+                        <h3 class="text-lg font-bold">Biglietto Non Trovato!</h3>
+                    </div>
+                    <p class="text-xs text-red-700">Nessun pass associato al codice <strong>${escapeHtml(code)}</strong>. Verifica di aver digitato correttamente.</p>
+                `;
+                return;
+            }
+
+            if(ticket.checkedIn) {
+                resultBox.className = "p-6 rounded-2xl border bg-amber-50 border-amber-200 text-amber-900";
+                resultBox.innerHTML = `
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-amber-600"></i>
+                        <h3 class="text-lg font-bold">ATTENZIONE: Ingresso già Effettuato!</h3>
+                    </div>
+                    <p class="text-sm font-semibold">Alunno: ${escapeHtml(ticket.name)} ${escapeHtml(ticket.surname)} (${ticket.class})</p>
+                    <p class="text-xs text-amber-700 mt-1">Questo biglietto è già stato convalidato in precedenza all'ingresso.</p>
+                `;
+                return;
+            }
+
+            // Perform valid check-in
+            try {
+                const updatedTicket = await apiRequest('PATCH', { id: ticket.id, updates: { checkedIn: true } });
+                Object.assign(ticket, updatedTicket);
+            } catch (error) {
+                showToast(error.message, "error");
+                return;
+            }
+            updateDashboard();
+            renderTable();
+
+            resultBox.className = "p-6 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900";
+            resultBox.innerHTML = `
+                <div class="flex items-center gap-3 mb-3">
+                    <i class="fa-solid fa-circle-check text-3xl text-emerald-600"></i>
+                    <div>
+                        <h3 class="text-lg font-bold">INGRESSO VALIDO - BENVENUTO!</h3>
+                        <p class="text-xs text-emerald-700">Check-in registrato con successo.</p>
+                    </div>
+                </div>
+                <div class="bg-white/80 p-4 rounded-xl border border-emerald-100 text-sm space-y-1">
+                    <p><strong>Alunno:</strong> ${escapeHtml(ticket.surname)} ${escapeHtml(ticket.name)}</p>
+                    <p><strong>Classe:</strong> ${ticket.class}</p>
+                    <p><strong>Stato Pagamento:</strong> <span class="${ticket.payment === 'Pagato' ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}">${ticket.payment}</span></p>
+                    ${ticket.notes ? `<p class="text-xs text-red-600 font-bold mt-2">⚠️ note: ${escapeHtml(ticket.notes)}</p>` : ''}
+                </div>
+            `;
+
+            input.value = '';
+            showToast(`Check-in effettuato per ${ticket.name} ${ticket.surname}!`, "success");
+        };
+
+        // Open Ticket Modal Pass & Generate QR
+        window.openTicketModal = function(ticketId) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if(!ticket) return;
+
+            document.getElementById('modalTicketCode').innerText = ticket.id;
+            document.getElementById('modalStudentName').innerText = `${ticket.surname} ${ticket.name}`;
+            document.getElementById('modalStudentClass').innerText = ticket.class;
+
+            const statusEl = document.getElementById('modalPaymentStatus');
+            statusEl.innerText = ticket.payment === 'Pagato' ? 'PAGATO (€20)' : 'DA PAGARE';
+            statusEl.className = ticket.payment === 'Pagato' ? 'font-bold text-emerald-400' : 'font-bold text-amber-400';
+
+            const notesBox = document.getElementById('modalNotesContainer');
+            if(ticket.notes) {
+                notesBox.classList.remove('hidden');
+                document.getElementById('modalNotesText').innerText = ticket.notes;
+            } else {
+                notesBox.classList.add('hidden');
+            }
+
+            // Generate QR Code
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(qrContainer, {
+                    text: ticket.id,
+                    width: 120,
+                    height: 120,
+                    colorDark : "#0f172a",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+
+            document.getElementById('ticketModal').classList.remove('hidden');
+        };
+
+        window.closeTicketModal = function() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        };
+
+        // Download Pass PDF
+        window.downloadTicketPDF = function() {
+            const element = document.getElementById('printableTicket');
+            if (typeof html2pdf !== 'undefined') {
+                const opt = {
+                    margin:       0.2,
+                    filename:     `Biglietto_Festa_${document.getElementById('modalTicketCode').innerText}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            } else {
+                window.print();
+            }
+        };
+
+        // Export CSV Functionality
+        window.exportToCSV = function() {
+            if(tickets.length === 0) {
+                alert("Nessun dato da esportare.");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Codice,Cognome,Nome,Classe,Stato Pagamento,Ingresso Effettuato,Genitore Volontario,Telefono Genitore,Note\n";
+
+            tickets.forEach(t => {
+                const row = [
+                    t.id,
+                    `"${t.surname}"`,
+                    `"${t.name}"`,
+                    t.class,
+                    t.payment,
+                    t.checkedIn ? "SI" : "NO",
+                    `"${t.parentName || ''}"`,
+                    `"${t.parentPhone || ''}"`,
+                    `"${t.notes || ''}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `partecipanti_festa_terza_media_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // Toast Notification System
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toast) return;
+            toastMessage.innerText = message;
+
+            if(type === 'success') {
+                toastTitle.innerText = "Operazione completata";
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-xl";
+            } else if(type === 'error') {
+                toastTitle.innerText = "Operazione non riuscita";
+                toastIcon.className = "fa-solid fa-circle-exclamation text-red-400 text-xl";
+            } else {
+                toastTitle.innerText = "Notifica";
+                toastIcon.className = "fa-solid fa-circle-info text-indigo-400 text-xl";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-10');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3500);
+        }
+
+        // Init application on load
+        window.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await loadTicketsData();
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+            updateDashboard();
+            renderTable();
+            renderSupervisorsTable();
+        });
+    </script>
+</body>
+</html>
